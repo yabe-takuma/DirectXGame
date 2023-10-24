@@ -8,14 +8,14 @@
 #pragma comment(lib, "dxguid.lib")
 
 #include<wrl.h>
-
+#include"WInApp.h"
 
 
 class Input
 {
 public:
 	//初期化
-	void Initialize(HINSTANCE hInstance,HWND hwnd);
+	void Initialize(WinApp* winApp);
 	//更新
 	void Update();
 	//任意のボタンが押されている
@@ -29,6 +29,8 @@ private:
 
 	BYTE key[256] = {};
 	BYTE keyPre[256] = {};
+
+	WinApp* winApp_ = nullptr;
 
 };
 
