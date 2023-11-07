@@ -4,6 +4,7 @@
 
 
 #include<cassert>
+#include<thread>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -16,6 +17,8 @@ void DirectXCommon::Initialize(WinApp* winApp)
     assert(winApp);
     //メンバ変数に記録
     this->winApp=winApp;
+    //FPS固定初期化
+    InitializeFixFPS();
   
     DeviceInitialize();
     CommandInitiallize();
@@ -101,6 +104,9 @@ void DirectXCommon::PostDraw()
         WaitForSingleObject(event, INFINITE);
         CloseHandle(event);
     }
+
+    //FPS固定処理
+    UpdateFixFPS();
 
     // キューをクリア
     result = commandAllocator->Reset();
@@ -331,4 +337,35 @@ void DirectXCommon::FenceInitialize()
 
     result = device->CreateFence(fenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
     assert(SUCCEEDED(result));
+}
+
+void DirectXCommon::InitializeFixFPS()
+{
+    //現在時刻を記録
+    reference_ = std::chrono::steady_clock::now();
+}
+
+void DirectXCommon::UpdateFixFPS()
+{
+    //1/60秒にぴったりな時間
+    const std::chrono::microseconds kMinTime(uint64_t(1000000.0f / 60.0f));
+
+    const std::chrono::microseconds kMinCheckTime(uint64_t(1000000.0f / 65.0f));
+
+    //現在時刻の取得
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    //前回の記録からの経過時間の取得
+    std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
+
+//1/60秒()立っていない場合
+if (elapsed < kMinCheckTime) {
+    //1/60秒経過するまで、微笑なスリープを繰り返す
+    while (std::chrono::steady_clock::now() - reference_ < kMinTime) {
+        //1マイクロ秒スリープ
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+    }
+}
+//現在の時間を記録する
+reference_ = std::chrono::steady_clock::now();
 }

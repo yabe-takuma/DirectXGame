@@ -4,6 +4,7 @@
 #include <d3d12.h>
 #include "WinApp.h"
 #include<vector>
+#include<chrono>
 
 class DirectXCommon
 {
@@ -16,7 +17,7 @@ public: //メンバ関数
 	void PreDraw();
 	//描画後処理
 	void PostDraw();
-
+	//Getter
 	ID3D12Device* GetDevice() const { return device.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList()const { return commandList.Get(); }
 	
@@ -34,6 +35,10 @@ private:
 	void DepthBufferInitialize();
 	//フェンス
 	void FenceInitialize();
+	//FPS固定化初期化処理
+	void InitializeFixFPS();
+	//FPS固定化更新処理
+	void UpdateFixFPS();
 
 private:
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory;
@@ -60,6 +65,9 @@ private:
 	D3D12_RESOURCE_BARRIER barrierDesc{};
 
 	WinApp* winApp = nullptr;
+
+	//記録用時間計測の変数
+	std::chrono::steady_clock::time_point reference_;
 
 };
 
