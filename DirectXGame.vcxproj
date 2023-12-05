@@ -208,6 +208,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BufferResource.h" />
     <ClInclude Include="DirectXCommon.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Sprite.h" />
