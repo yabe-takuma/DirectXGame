@@ -20,7 +20,13 @@ public: //メンバ関数
 	//Getter
 	ID3D12Device* GetDevice() const { return device.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList()const { return commandList.Get(); }
-	
+
+	//スワップチェーン
+	DXGI_SWAP_CHAIN_DESC1 GetSwapChainDesc() { return  swapChainDesc; }
+	//RTVディスク
+	D3D12_RENDER_TARGET_VIEW_DESC GetRtvDesc() { return rtvDesc; }
+	//SRV
+	ID3D12DescriptorHeap* GetSrvDescriptorHeap() const { return  srvDescriptorHeap.Get(); }
 
 private:
 	//デバイス
@@ -39,6 +45,9 @@ private:
 	void InitializeFixFPS();
 	//FPS固定化更新処理
 	void UpdateFixFPS();
+
+	//ディスクリプタヒープ作成
+	ID3D12DescriptorHeap* CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptos, bool shaderVisible);
 
 private:
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory;
@@ -63,6 +72,15 @@ private:
 	UINT64 fenceVal = 0;
 
 	D3D12_RESOURCE_BARRIER barrierDesc{};
+
+	// レンダーターゲットビューの設定
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
+	//でスクリプタヒープ
+	//RTV(ゲームの画面を保存しておく)
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap;
+	//SRV(画像などを保存しておくもの)
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvDescriptorHeap;
 
 	WinApp* winApp = nullptr;
 

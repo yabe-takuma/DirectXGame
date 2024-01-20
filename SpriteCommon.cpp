@@ -30,8 +30,16 @@ void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
+	//画像用のディスクリプタ範囲
+	D3D12_DESCRIPTOR_RANGE descriptorRange[1]{};
+	descriptorRange[0].BaseShaderRegister = 0;
+	descriptorRange[0].NumDescriptors = 1;
+	descriptorRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+
 	//RootParameter作成
-	D3D12_ROOT_PARAMETER rootParameters[2] = {};
+	D3D12_ROOT_PARAMETER rootParameters[3] = {};
 	//色
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -40,9 +48,27 @@ void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	rootParameters[1].Descriptor.ShaderRegister = 0;
+	//画像
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
+	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
 
 	descriptionRootSignature.pParameters = rootParameters;
 	descriptionRootSignature.NumParameters = _countof(rootParameters);
+
+	//Sample設定
+	D3D12_STATIC_SAMPLER_DESC staticSamples[1] = {};
+	staticSamples[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	staticSamples[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamples[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamples[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamples[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	staticSamples[0].MaxLOD = D3D12_FLOAT32_MAX;
+	staticSamples[0].ShaderRegister = 0;
+	staticSamples[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	descriptionRootSignature.pStaticSamplers = staticSamples;
+	descriptionRootSignature.NumStaticSamplers = _countof(staticSamples);
 
 	//シリアライズとしてパイナリにする
 	ComPtr<ID3D10Blob> signatureBlob;
@@ -58,11 +84,16 @@ void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 	assert(SUCCEEDED(result));
 
 	//InputLayout
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs[1] = {};
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[2] = {};
 	inputElementDescs[0].SemanticName = "POSITION";
 	inputElementDescs[0].SemanticIndex = 0;
 	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	inputElementDescs[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+	inputElementDescs[1].SemanticName = "TEXCOORD";
+	inputElementDescs[1].SemanticIndex = 0;
+	inputElementDescs[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	inputElementDescs[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc{};
 	inputLayoutDesc.pInputElementDescs = inputElementDescs;
 	inputLayoutDesc.NumElements = _countof(inputElementDescs);
@@ -108,6 +139,43 @@ void SpriteCommon::Initialize(DirectXCommon* dxCommon)
 	
 	result = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&pipelineState));
 	assert(SUCCEEDED(result));
+}
+
+DirectX::ScratchImage SpriteCommon::LoadTexture(const std::wstring& filePath)
+{
+	//テクスチャファイルを読み込んでプログラムで扱えるようにする
+	DirectX::ScratchImage image{};
+	HRESULT result = DirectX::LoadFromWICFile(filePath.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+	assert(SUCCEEDED(result));
+
+	DirectX::ScratchImage mipImages{};
+	result = DirectX::GenerateMipMaps(
+		image.GetImages(), image.GetImageCount(), image.GetMetadata(),
+		DirectX::TEX_FILTER_SRGB, 0, mipImages
+	);
+	assert(SUCCEEDED(result));
+	return image;
+
+}
+
+void SpriteCommon::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages)
+{
+	const DirectX::TexMetadata& metaData = mipImages.GetMetadata();
+
+	for (size_t mipLevel = 0; mipLevel < metaData.mipLevels; ++mipLevel)
+	{
+		const DirectX::Image* img = mipImages.GetImage(mipLevel, 0, 0);
+
+		//転送(シェーダ)テクスチャの全情報を送る
+		HRESULT result = texture->WriteToSubresource(
+			UINT(mipLevel),
+			nullptr,
+			img->pixels,
+			UINT(img->rowPitch),
+			UINT(img->rowPitch)
+		);
+		assert(SUCCEEDED(result));
+	}
 }
 
 IDxcBlob* SpriteCommon::CompilerShader(const std::wstring& filePath, const wchar_t* profile, IDxcUtils* dxcUtils, IDxcCompiler3* dxcCompiler, IDxcIncludeHandler* includeHandler)
