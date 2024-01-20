@@ -19,16 +19,25 @@ private:
 		DirectX::XMFLOAT4 position;
 		DirectX::XMFLOAT2 texcoord;
 	};
+	//マテリアル
+	struct MaterialData {
+		DirectX::XMFLOAT4 color;
+		DirectX::XMMATRIX uvTransform;
+	};
 
 public:
 	//初期化
 	void Initialize(DirectXCommon* dxCommon,SpriteCommon* common);
 	
+	void Update();
+
 	void Draw();
 
 private:
 	//頂点情報作成
 	void CreateVertex();
+	//インデックス情報作成
+	void CreateIndex();
 	//マテリアル情報作成
 	void CreateMaterial();
 	//行列情報作成
@@ -41,8 +50,13 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 
+	//インデックス
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView{};
+
 	//マテリアル情報
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource;
+	MaterialData* materialData = nullptr;
 
 	//行列情報
 	Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource;
@@ -52,6 +66,10 @@ private:
 
 	//パラメータ
 	DirectX::XMFLOAT4 color_ = { 1.0f,1.0f,1.0f,1.0f };
+	//UV
+	Transform uvTransform = { {1,1,1},{0,0,0},{0,0,0} };
+
+
 	Transform transform = { {1,1,1},{0,0,0},{0,0,0} };
 
 	//カメラ

@@ -58,6 +58,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
         input_->Update();
 
+        sprite->Update();
+
         //更新前処理
         ImGuiManager::CreateCommand();
         dxCommon_->PreDraw();
