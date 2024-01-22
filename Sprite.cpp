@@ -46,7 +46,7 @@ void Sprite::Initialize(DirectXCommon* dxCommon,SpriteCommon* common)
 
 void Sprite::Draw()
 {
-	//transform.rotate.y += 0.03f;
+	transform.rotate.y += 0.03f;
 	//ワールド
 	XMMATRIX scaleMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&transform.scale));
 	XMMATRIX rotateMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&transform.rotate));
