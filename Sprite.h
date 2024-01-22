@@ -33,6 +33,11 @@ public:
 
 	void Draw();
 
+	//Getter/Setter
+	DirectX::XMFLOAT3 GetPosition() { return position; }
+
+	void SetPosition(DirectX::XMFLOAT3 pos) { position = pos; }
+
 private:
 	//頂点情報作成
 	void CreateVertex();
@@ -71,6 +76,7 @@ private:
 
 
 	Transform transform = { {1,1,1},{0,0,0},{0,0,0} };
+	DirectX::XMFLOAT3 position = { 0,0,0 };
 
 	//カメラ
 	Transform cameraTransform = { {1,1,1},{0,0,0},{0,0,-5} };
