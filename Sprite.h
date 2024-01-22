@@ -34,9 +34,15 @@ public:
 	void Draw();
 
 	//Getter/Setter
-	DirectX::XMFLOAT3 GetPosition() { return position; }
+	DirectX::XMFLOAT2 GetPosition() { return position; }
+	float GetRotation() { return rotation; }
+	DirectX::XMFLOAT4 GetColor() { return color_; }
+	DirectX::XMFLOAT2 GetSize() { return size; }
 
-	void SetPosition(DirectX::XMFLOAT3 pos) { position = pos; }
+	void SetPosition(DirectX::XMFLOAT2 pos) { position = pos; }
+	void SetRotation(float rot) { rotation = rot; }
+	void SetColor(DirectX::XMFLOAT4 color) { color_ = color; }
+	void SetSize(DirectX::XMFLOAT2 size) { this->size = size; }
 
 private:
 	//頂点情報作成
@@ -54,6 +60,7 @@ private:
 	//頂点情報
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+	VertexData* vertexData = nullptr;
 
 	//インデックス
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource;
@@ -76,7 +83,9 @@ private:
 
 
 	Transform transform = { {1,1,1},{0,0,0},{0,0,0} };
-	DirectX::XMFLOAT3 position = { 0,0,0 };
+	DirectX::XMFLOAT2 position = { 0,0 };
+	float rotation = 0;
+	DirectX::XMFLOAT2 size = { 1,1 };
 
 	//カメラ
 	Transform cameraTransform = { {1,1,1},{0,0,0},{0,0,-5} };

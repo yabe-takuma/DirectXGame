@@ -4,6 +4,7 @@
 #include"SpriteCommon.h"
 #include"Sprite.h"
 #include"ImGuiManager.h"
+#include<vector>
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -44,9 +45,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     spriteCommon->Initialize(dxCommon_);
 
     //スプライト
-    sprite = new Sprite();
-    sprite->Initialize(dxCommon_,spriteCommon);
-
+    std::vector<Sprite*> sp;
+    for (int i = 0; i < 5; i++) {
+        Sprite* temp = new Sprite();
+        temp->Initialize(dxCommon_, spriteCommon);
+        temp->SetPosition({ (float)i * 1,0 });
+        sp.push_back(temp);
+    }
     // ゲームループ
     while (true) {
         if (winApp_->Update() == true){
@@ -58,18 +63,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
         input_->Update();
 
+        //移動
+        //DirectX::XMFLOAT2 pos = sprite->GetPosition();
+        //pos.x += 0.01f;
+        //sprite->SetPosition(pos);
+        ////回転
+        //float rot = sprite->GetRotation();
+        //rot += 0.005f;
+        //sprite->SetRotation(rot);
+        ////色
+        //DirectX::XMFLOAT4 color = sprite->GetColor();
+        //color.x -= 0.01f;
+        //if (color.x < 0)
+        //{
+        //    color.x = 1.0f;
+        //}
+        //sprite->SetColor(color);
 
-        DirectX::XMFLOAT3 pos = sprite->GetPosition();
-        pos.x += 0.05f;
-        sprite->SetPosition(pos);
-        sprite->Update();
-
+        ////サイズ
+        //DirectX::XMFLOAT2 size = sprite->GetSize();
+        //size.y += 0.01f;
+        //sprite->SetSize(size);
+        for (int i = 0; i < 5; i++)
+        {
+            sp[i]->Update();
+        }
         //更新前処理
         ImGuiManager::CreateCommand();
         dxCommon_->PreDraw();
-      
-        sprite->Draw();
-
+        for (int i = 0; i < 5; i++)
+        {
+            sp[i]->Draw();
+        }
         // ４．描画コマンドここまで
         ImGuiManager::CommandsExcute(dxCommon_->GetCommandList());
         dxCommon_->PostDraw();
@@ -77,8 +102,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         // DirectX毎フレーム処理　ここまで
 
     }
-
-    delete sprite;
+    for (int i = 0; i < 5; i++)
+    {
+        delete sprite;
+    }
     delete spriteCommon;
     delete input_;
     delete dxCommon_;
