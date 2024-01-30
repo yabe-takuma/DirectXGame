@@ -5,6 +5,7 @@
 #include"Sprite.h"
 #include"ImGuiManager.h"
 #include<vector>
+#include"TextureManager.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -44,12 +45,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     spriteCommon = new SpriteCommon();
     spriteCommon->Initialize(dxCommon_);
 
+    //テクスチャマネージャ
+    TextureManager::Getinstance()->Initialize(dxCommon_);
+    TextureManager::Getinstance()->LoadTexture(L"Resources/mario.jpg");
+
     //スプライト
     std::vector<Sprite*> sp;
     for (int i = 0; i < 5; i++) {
         Sprite* temp = new Sprite();
-        temp->Initialize(dxCommon_, spriteCommon);
-        temp->SetPosition({ (float)i * 1,0 });
+        temp->Initialize(dxCommon_, spriteCommon, L"Resources/mario.jpg");
+        temp->SetPosition({ (float)i * 120,0 });
         sp.push_back(temp);
     }
     // ゲームループ
@@ -104,8 +109,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     }
     for (int i = 0; i < 5; i++)
     {
-        delete sprite;
+        delete sp[i];
     }
+
+    TextureManager::Getinstance()->Finalize();
+
     delete spriteCommon;
     delete input_;
     delete dxCommon_;
